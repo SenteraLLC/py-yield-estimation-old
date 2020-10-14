@@ -1,0 +1,16 @@
+name: <venv_name>
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  # dev dependencies
+  - pytest
+  - pre_commit
+  - sphinx
+  - sphinx_rtd_theme
+  # main dependencies
+  - click
+  # subpackage dependencies
+  # private dependencies
+#  - pip:
+#    - git+ssh://git@github.com/SenteraLLC/py-utils@v2.1.0

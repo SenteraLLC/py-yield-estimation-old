@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "<pkg_name>"
+version = "0.0.0"
+description = "<pkg_description>"
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+sphinx_rtd_theme = "*"
+sphinx = "*"
+pre_commit = "*"
+
+[tool.poetry.scripts]
+<pkg_name> = "<pkg_name>.cli:cli"
+
+[tool.isort]
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+known_third_party = ["click"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
