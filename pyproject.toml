@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "<pkg_name>"
+name = "src"
 version = "0.0.0"
-description = "<pkg_description>"
+description = "Lambda for consuming sentinel COGs"
 authors = []
 
 [tool.poetry.dependencies]
@@ -15,7 +15,7 @@ sphinx = "*"
 pre_commit = "*"
 
 [tool.poetry.scripts]
-<pkg_name> = "<pkg_name>.cli:cli"
+src = "src.cli:cli"
 
 [tool.isort]
 line_length = 88

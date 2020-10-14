@@ -1,7 +1,7 @@
-<pkg_name> Documentation
+src Documentation
 ========================
 
-.. automodule:: <pkg_name>
+.. automodule:: src
    :members:
    :undoc-members:
    :show-inheritance:

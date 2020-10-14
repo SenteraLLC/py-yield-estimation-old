@@ -7,4 +7,4 @@ install:
 
 script:
   - poetry run pre-commit run --all-files
-  - poetry run <pkg_name> --help
+  - poetry run src --help

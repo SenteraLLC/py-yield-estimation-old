@@ -1,4 +1,4 @@
-name: <venv_name>
+name: sentinel-venv
 channels:
   - conda-forge
 dependencies:
