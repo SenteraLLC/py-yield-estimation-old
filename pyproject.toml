@@ -7,12 +7,17 @@ authors = []
 [tool.poetry.dependencies]
 python = "^3.7"
 click = "*"
+geojson = "^2.5.0"
+rasterio = "^1.1.7"
+sat-search = "^0.3.0"
+lambda-proxy = "^5.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 sphinx_rtd_theme = "*"
 sphinx = "*"
 pre_commit = "*"
+autopep8 = "^1.5.4"
 
 [tool.poetry.scripts]
 src = "src.cli:cli"

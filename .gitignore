@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 *.egg*
 _build/
+node_modules
+.serverless
+.vscode
