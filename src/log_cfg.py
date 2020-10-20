@@ -4,6 +4,9 @@ import sys
 All lambda methods use this logging config.
 Provides a single place where all log config/level/formatting is setup so that one
 can see source file, line numbers, and any other desired log fields.
+
+Usage: from log_cfg import logger
+
 Taken from: https://github.com/serverless/examples/tree/master/aws-python-pynamodb-s3-sigurl 
 """
 logger = logging.getLogger()
@@ -17,5 +20,4 @@ logger.addHandler(h)
 logger.setLevel(logging.DEBUG)
 # Suppress the more verbose modules
 logging.getLogger('__main__').setLevel(logging.DEBUG)
-logging.getLogger('botocore').setLevel(logging.WARN)
-logging.getLogger('pynamodb').setLevel(logging.INFO)
+logging.getLogger('boto3').setLevel(logging.WARN)

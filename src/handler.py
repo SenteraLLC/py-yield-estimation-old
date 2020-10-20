@@ -31,12 +31,11 @@ def main_handler(event, context):
 
     return json.dumps(list(catalog))
 
-
 def download_assets(results):
     items = results.items()
     keys = set([k for i in items for k in i.assets])
     
-    # TODO: Have py-aws-utils handle uploading to S3?
+    # TODO: Use py-aws-utils for uploading to S3?
     for key in keys:
         upload_asset = items.download(key=key, filename_template='downloads/${date}/${id}')
 

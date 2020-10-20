@@ -38,6 +38,10 @@
 ## Usage
 
 Within the correct poetry/conda shell, run ``src --help`` to view available CLI commands.
+
+## Serverless local usage
+
+serverless invoke local --function get_cogs --data '{ "geoJSON": ...}'
    
 ## Documentation
 
