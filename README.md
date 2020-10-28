@@ -41,8 +41,12 @@ Within the correct poetry/conda shell, run ``src --help`` to view available CLI 
 
 ## Serverless local usage
 
-serverless invoke local --function get_cogs --data '{ "geoJSON": ...}'
-   
+        >> serverless invoke local --function get_cogs --data '{ "geoJSON": ...}'
+
+## Local usage (without serverless)
+
+        >> poetry run python scripts/run_sentinel_stac.py
+
 ## Documentation
 
 This library is documented using Sphinx. To generate documentation, navigate to the *docs/* subfolder,
