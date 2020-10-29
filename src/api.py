@@ -19,10 +19,8 @@ def fetch_stac_collections(geojson):
                                       datetime=dates,
                                       bbox=bounds,    
                                       sort=['<datetime'])
-    print('%s items' % results.found())
-    items = results.items()
-    catalog = intake.open_stac_item_collection(items)
+    #print('%s items' % results.found())
+    catalog = intake.open_stac_item_collection(results.items())
 
-    return json.dumps(list(catalog))
-    #return list(catalog)
+    return list(catalog)
   

@@ -1,4 +1,4 @@
-from src.log_cfg import logger
+#from src.log_cfg import logger
 from src.api import fetch_stac_collections
 
 def yield_detection(geojson):
