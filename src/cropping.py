@@ -1,13 +1,17 @@
 """Sentera cropping target filed from TIFF script"""
+
 """Author: Jingtian Shi"""
 
 
 import pycrs
 import rasterio.warp
-from rasterio.plot import show
 from rasterio.mask import mask
 import geopandas as gpd
 import geojson
+
+
+"""Lib used for print and debugging"""
+from rasterio.plot import show
 
 
 """parse target coordinates and features of GeoDataFrame into JSON format"""
@@ -17,7 +21,7 @@ def getFeatures(gdf):
     return [json.loads(gdf.to_json())['features'][0]['geometry']]
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def cropping():
 
     """# Cropping from a random image at a given coordinate
     #######################################################"""
@@ -26,8 +30,8 @@ if __name__ == '__main__':
     data = rasterio.open('/home/david/Desktop/testing/sample2/2020-08-02/S2A_14TQN_20200802_0_L2A_SCL.tif')
 
     """print some basic info of TIFF for debugging"""
-    print(data.bounds)
-    print(data.crs)
+    # print(data.bounds)
+    # print(data.crs)
     # print(data.height)
     # print(data.width)
     # show((data,1), cmap="terrain")
@@ -67,14 +71,14 @@ if __name__ == '__main__':
                      "crs": pycrs.parse.from_epsg_code(epsg_code).to_proj4()})
 
     """write the output image"""
-    with rasterio.open('/home/david/Desktop/testing/sample2/real_user_output_802', "w", **out_meta) as dest:
+    with rasterio.open('/home/david/Desktop/testing/sample2/real_user_output.tif', "w", **out_meta) as dest:
         dest.write(out_img)
 
-    """read and print the output filed image to check"""
-    clipped = rasterio.open('/home/david/Desktop/testing/sample2/real_user_output_802')
-    show((clipped, 1), cmap='terrain')
-    print(clipped.bounds)
-    print(clipped.crs)
+    """read and print the output filed image for debugging"""
+    # clipped = rasterio.open('/home/david/Desktop/testing/sample2/real_user_output.tif')
+    # show((clipped, 1), cmap='terrain')
+    # print(clipped.bounds)
+    # print(clipped.crs)
 
     """print out the bounding box as needed"""
     # mask = clipped.dataset_mask()
@@ -86,6 +90,8 @@ if __name__ == '__main__':
     #     # Print GeoJSON shapes to stdout.
     #     print(geom)
 
+if __name__ == '__main__':
+    cropping()
 
 
     """# Cropping a field from a random image at a given coordinate
