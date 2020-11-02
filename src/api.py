@@ -22,5 +22,5 @@ def fetch_stac_collections(geojson):
     #print('%s items' % results.found())
     catalog = intake.open_stac_item_collection(results.items())
 
-    return list(catalog)
+    return catalog
   
