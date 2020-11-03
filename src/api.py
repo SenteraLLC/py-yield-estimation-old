@@ -5,7 +5,7 @@ import intake
 
 from rasterio.features import bounds as featureBounds
 
-STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/search"
+STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/"
 
 def fetch_stac_collections(geojson):
     # Dates from event body? Hardcoded for now.
