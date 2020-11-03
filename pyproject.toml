@@ -13,6 +13,8 @@ sat-search = "^0.3.0"
 lambda-proxy = "^5.2.1"
 intake-stac = "^0.3.0"
 boto3 = "^1.16.0"
+rioxarray = "^0.1.1"
+xarray = "^0.16.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
