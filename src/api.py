@@ -7,9 +7,10 @@ from rasterio.features import bounds as featureBounds
 
 STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/"
 
-def fetch_stac_collections(geojson):
-    # Dates from event body? Hardcoded for now.
-    dates = '2020-07-31/2020-08-05'
+def fetch_stac_collections(geojson, start_date, end_date):
+    # date format:
+    # dates = '2020-07-31/2020-08-05'
+    dates = start_date + '/' + end_date
 
     # TODO: Catch error if bad request passed to event 
     bounds = list(featureBounds(geojson))
@@ -19,7 +20,7 @@ def fetch_stac_collections(geojson):
                                       datetime=dates,
                                       bbox=bounds,    
                                       sort=['<datetime'])
-    #print('%s items' % results.found())
+    
     catalog = intake.open_stac_item_collection(results.items())
 
     return catalog

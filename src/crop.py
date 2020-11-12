@@ -1,34 +1,48 @@
 import intake
-import rioxarray
-import xarray
-import geojson
-import json
+import pycrs
+import rasterio.warp
+from rasterio.mask import mask
+from rasterio.io import MemoryFile
 
+import geopandas as gpd
 from src.log_cfg import logger
 
+def getFeatures(gdf):
+    """Parse features from GeoDataFrame in such a manner that rasterio wants them"""
+    import json
+    return [json.loads(gdf.to_json())['features'][0]['geometry']]
+
+def create_memory_file(data, west_bound, north_bound, cellsize, driver='GTIFF'):
+    #data is a numpy array
+    if data.ndim ==2: # Handle 2 or 3D input arrays
+        data = np.expand_dims(data, axis=0)
+    dtype = data.dtype
+    shape = data.shape
+    transform = rasterio.transform.from_origin(west_bound, north_bound, cellsize, cellsize)
+    with MemoryFile() as memfile:
+        dataset = memfile.open(
+                driver=driver, width=shape[2], height = shape[1],
+                transform=transform, count=shape[0], dtype=dtype)
+        dataset.write(data)
+        return dataset
+
 def crop_scl_band(catalog, gjson):
-    """
-    return: xArray of cropped tiffs
-    """
+    scl_band = rasterio.open(item.SCL().metadata['href'])
 
-    # Get tiff SCL bands for date range. Yeah, I don't understand this line either. 
-    tiffs = [catalog[item].SCL().metadata['href'] for item in catalog]
+    gdf = gpd.GeoDataFrame.from_features(gjson['features'], crs="ESPG:4326")
+    gdf = gdf.to_crs(crs=scl_band.crs.data)
 
-    out_coords = json.loads(gjson)['features'][0]['geometry']
-    geometries = json.dumps(out_coords)
-    cropping_geometries = [geojson.loads(geometries)]
+    out_coords = getFeatures(gdf)
 
-    for band in tiffs:
-        arr = rioxarray.open_rasterio(band)
+    out_img, out_transform = mask(dataset=scl_band, shapes=out_coords, crop=True)
+    out_meta = scl_band.meta.copy()
 
-    cropped = arr.rio.clip(geometries=cropping_geometries, crs=4326)
-    return cropped 
-    
-    # for tiff in tiffs:
-    #     with rasterio.open(tiff) as src:
-    #         #mask_shp = [feature['geometry'] for feature in json.loads(gdf)['features']]
-    #         gdf = gpd.GeoDataFrame.from_features(geojson["features"],crs="EPSG:4326")
-    #         gdf = gdf.to_crs(crs=src.crs.data)
-    #         out_coords = json.loads(gdf.to_json())['features'][0]['geometry']
-    #         #for index in range(len(mask_shp)):
-    #         out_image, out_transform = rasterio.mask.mask(src, out_coords, crop=True, nodata=np.nan)
+    espg_code = int(scl_band.crs.data['init'][5:])
+
+    out_meta.update({"driver": "GTiff",
+                     "height": out_img.shape[1],
+                     "width": out_img.shape[2],
+                     "transform": out_transform,
+                     "crs": pycrs.parse.from_epsg_code(epsg_code).to_proj4()})
+    return out_img
+
