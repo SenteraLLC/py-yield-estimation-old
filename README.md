@@ -1,6 +1,6 @@
-# py-sentinel-STAC
+# py-yield-estimation
 
-``src``: Lambda for consuming sentinel COGs
+``src``: Yield estimation model based on NDVI
 
 ## Installation 
 
@@ -10,10 +10,10 @@
 2) Install [conda](https://github.com/SenteraLLC/install-instructions/blob/master/conda.md)
 3) Install package
 
-        git clone git@github.com:SenteraLLC/py-sentinel-STAC.git
-        cd py-sentinel-STAC
+        git clone git@github.com:SenteraLLC/py-yield-estimation.git
+        cd py-yield-estimation
         conda env create -f environment.yml
-        conda activate sentinel-venv
+        conda activate yield-venv
         pip install .
    
 4) Set up ``pre-commit`` to ensure all commits to adhere to **black** and **PEP8** style conventions.
@@ -26,8 +26,8 @@
 2) Install [pyenv](https://github.com/SenteraLLC/install-instructions/blob/master/pyenv.md) and [poetry](https://python-poetry.org/docs/#installation)
 3) Install package
 
-        git clone git@github.com:SenteraLLC/py-sentinel-STAC.git
-        cd py-sentinel-STAC
+        git clone git@github.com:SenteraLLC/py-yield-estimation.git
+        cd py-yield-estimation
         pyenv install $(cat .python-version)
         poetry install
         
