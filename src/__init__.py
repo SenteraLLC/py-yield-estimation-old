@@ -1,4 +1,4 @@
-"""Lambda for consuming sentinel COGs"""
+"""Yield estimation model based on NDVI"""
 
 from src._version import __version__
 

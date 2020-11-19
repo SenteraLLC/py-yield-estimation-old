@@ -22,6 +22,9 @@ def fetch_stac_collections(geojson, start_date, end_date):
                                       sort=['<datetime'])
     
     catalog = intake.open_stac_item_collection(results.items())
-
     return catalog
+
+    
+
+
   

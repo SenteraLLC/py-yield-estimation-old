@@ -1,7 +1,6 @@
 import logging
 import sys
 """
-All lambda methods use this logging config.
 Provides a single place where all log config/level/formatting is setup so that one
 can see source file, line numbers, and any other desired log fields.
 

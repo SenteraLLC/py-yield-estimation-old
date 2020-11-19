@@ -6,37 +6,29 @@ from src.api import fetch_stac_collections
 
 from rio_tiler.io import COGReader, STACReader
 
-def yield_detection(geojson):
+def yield_prediction(geojson):
     dates = '2020-07-20/2020-08-05'
-    URL='https://earth-search.aws.element84.com/v0'
-    results = satsearch.Search.search(url=URL,
-                                  collections=['sentinel-s2-l2a-cogs'],
-                                  datetime=dates,
-                                  bbox=bounds,    
-                                  sort=['<datetime'])
-
-    catalog = intake.open_stac_item_collection(results.items())
-
-    # TODO: select the best catalog from the date range
-    #select_catalog = catalog['S2A_14TQN_20200802_0_L2A']
-
     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
     
-    # URLs of catalogs - STACReader doesn't like StacItemCollections
-    stac_assets = [stac_item.format(sceneid=scene) for scene in catalog]
+    stac_asset = stac_item.format(sceneid='S2A_14TQN_20200802_0_L2A')
 
-    # for loop is pointless since it'll only calculate for the last catalog TODO
-    for item in stac_assets:
-        with STACReader(item) as cog:
-            ndvi = cog.part(bounds, 
-                           resampling_method="bilinear", 
-                           dst_crs="epsg:4326", 
-                           expression="(B08-B04)/(B08+B04)", 
-                           max_size=None)
+    with STACReader(stac_asset) as cog:
+        ndvi, _ = cog.part(bounds, expression='(B08-B04)/(B08+B04)')
+        # Grab the resampled SCL
+        scl_band, mask = cog.part(bounds, 
+                            resampling_method="nearest", 
+                            height=ndvi.shape[1], 
+                            width=ndvi.shape[2], 
+                            assets='SCL',
+                            max_size=None)
+                            
+    # Apply cloud mask
+    sc = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
+
+    # NDVI as a MaskedArray
+    ndvi_masked = ImageData(ndvi, sc).as_masked()
     
-    # ndvi is of type ImageData (from rio-tiler), data_as_image() converts it to an ndarray.
-    imshow(ndvi.data_as_image())
-    print('\nMax NDVI: {m}'.format(m=ndvi.data.max()))
-    print('Mean NDVI: {m}'.format(m=ndvi.data.mean()))
-    print('Median NDVI: {m}'.format(m=np.median(ndvi.data)))
-    print('Min NDVI: {m}'.format(m=ndvi.data.min()))
+    print('\nMax NDVI: {m}'.format(m=ndvi_masked.max()))
+    print('Mean NDVI: {m}'.format(m=ndvi_masked.mean()))
+    print('Median NDVI: {m}'.format(m=np.median(ndvi_masked.data)))
+    print('Min NDVI: {m}'.format(m=ndvi_masked.min()))
