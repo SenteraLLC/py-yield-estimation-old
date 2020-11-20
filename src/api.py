@@ -5,13 +5,12 @@ import intake
 
 from rasterio.features import bounds as featureBounds
 
-STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/"
+STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/search/"
 
-def fetch_stac_collections(geojson, start_date, end_date):
+def fetch_stac_scenes(geojson):
     # date format:
-    # dates = '2020-07-31/2020-08-05'
-    dates = start_date + '/' + end_date
-
+    dates = '2019-07-20/2019-08-05'
+    #dates = start_date + '/' + end_date
     # TODO: Catch error if bad request passed to event 
     bounds = list(featureBounds(geojson))
 
@@ -21,8 +20,10 @@ def fetch_stac_collections(geojson, start_date, end_date):
                                       bbox=bounds,    
                                       sort=['<datetime'])
     
-    catalog = intake.open_stac_item_collection(results.items())
-    return catalog
+    scenes = intake.open_stac_item_collection(results.items())
+
+    return list(scenes)
+
 
     
 
