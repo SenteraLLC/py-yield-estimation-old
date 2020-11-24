@@ -15,7 +15,7 @@ def yield_estimation(scene, geojson):
 
     with STACReader(stac_asset) as cog:
         ndvi, _ = cog.part(bounds, expression='(B08-B04)/(B08+B04)')
-        # Grab the resampled SCL layer
+        # Crop and resample scene classification band
         scl_band, mask = cog.part(bounds, 
                             resampling_method="nearest", 
                             height=ndvi.shape[1], 
@@ -24,10 +24,10 @@ def yield_estimation(scene, geojson):
                             max_size=None)
 
     # Apply cloud mask
-    sc = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
+    masked = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
 
     # NDVI as a MaskedArray
-    ndvi_masked = ImageData(ndvi, sc).as_masked()
+    ndvi_masked = ImageData(ndvi, masked).as_masked()
     
     print('\nMax NDVI: {m}'.format(m=ndvi_masked.max()))
     print('Mean NDVI: {m}'.format(m=ndvi_masked.mean()))

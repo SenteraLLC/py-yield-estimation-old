@@ -10,8 +10,8 @@ with open(geojson_path) as f:
 
 try:
     scenes = fetch_stac_scenes(geojson)
-
+    print(list(scenes))
     # Just run yield estimation on the first date in the collection for now. 
-    yield_estimation(scenes[0], geojson)
+    #yield_estimation(scenes[0], geojson)
 except Exception as e:
     print(e)

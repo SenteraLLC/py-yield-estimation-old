@@ -13,7 +13,6 @@ lambda-proxy = "^5.2.1"
 intake-stac = "^0.3.0"
 boto3 = "^1.16.0"
 rio-tiler = "2.0.0rc1"
-autopep8 = "^1.5.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -21,7 +20,6 @@ sphinx_rtd_theme = "*"
 sphinx = "*"
 pre_commit = "*"
 autopep8 = "^1.5.4"
-black = { version = "*", allows-prereleases = true }
 
 [tool.poetry.scripts]
 src = "src.cli:cli"

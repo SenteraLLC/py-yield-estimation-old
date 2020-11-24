@@ -24,6 +24,32 @@ def fetch_stac_scenes(geojson):
 
     return list(scenes)
 
+def find_best_date(scenes):
+    best_ratio = 0
+    # find the best scene with the least cloud cover. 
+    scl_dates = [catalog[item].SCL().metadata['href'] for item in catalog]
+
+    for date in scl_dates: 
+        with COGReader(date) as cog:
+            valid_pixels = 0
+            for row in range(len(cog.dataset)):
+                for col in range(len(band[row])):
+                    if band[row][col] == 4 or band[row][col] == 5 or band[row][col] == 6:
+                        valid_pixels += 1
+                    else:
+                        continue
+            ratio = valid_pixels / (cog.data.shape[0] * cog.data.shape[1])
+            if ratio > best_ratio:
+                best_scene = date
+                best_ratio = ratio
+    
+    return best_scene
+
+
+
+
+
+
 
     
 
