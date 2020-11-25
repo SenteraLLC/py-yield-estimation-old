@@ -24,10 +24,10 @@ def fetch_stac_scenes(geojson):
 
     return list(scenes)
 
-def find_best_date(scenes):
+def best_stac_date(scenes):
     best_ratio = 0
     # find the best scene with the least cloud cover. 
-    scl_dates = [catalog[item].SCL().metadata['href'] for item in catalog]
+    scl_dates = [scenes[item].SCL().metadata['href'] for item in scenes]
 
     for date in scl_dates: 
         with COGReader(date) as cog:

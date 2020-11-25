@@ -7,9 +7,14 @@ from rio_tiler.models import ImageData, Metadata
 
 from rasterio.features import bounds as featureBounds
 
-def yield_estimation(scene, geojson):
+def yield_estimation(geojson):
+
+    scenes = fetch_stac_scenes(geojson)
+
+    #best_scene = best_stac_date(scenes) 
+
     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_asset = stac_item.format(sceneid=scene)
+    stac_asset = stac_item.format(sceneid=best_scene)
 
     bounds = featureBounds(geojson)
 
@@ -33,3 +38,5 @@ def yield_estimation(scene, geojson):
     print('Mean NDVI: {m}'.format(m=ndvi_masked.mean()))
     print('Median NDVI: {m}'.format(m=np.median(ndvi_masked.data)))
     print('Min NDVI: {m}'.format(m=ndvi_masked.min()))
+
+    return ndvi_masked.mean()

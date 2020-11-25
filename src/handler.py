@@ -1,20 +1,40 @@
 import os
 import json
-import boto3
 import datetime
-
-from src.api import fetch_stac_collections
-from src.main import yield_detection
+import geojson
 
 from lambda_proxy.proxy import API
 
-STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/search"
+APP = API(name='yield-estimation')
 
-def main_handler(event, context):
+def lambda_handler(event, context):
     version = os.getenv("VERSION", "unknown")
-    logger.info(f"Handling lambda invocation to sentinel-stac ({version})")
+    logger.info(f"Handling lambda invocation to yield-estimation ({version})")
+
+    return yield_estimation(event)
+
+
+@APP.route(
+    '/yield',
+    methods=["POST"],
+    cors=True,
+    binary_b64encode=True
+)
+def main_handler(body):
+    version = os.getenv('VERSION', 'unknown')
+    logger.info(f'Handling lambda invocation to yield-estimation ({version})')
+
+    geo = geojson.loads(body)
     
-    return yield_detection(event)
+    try:
+        scene = best_dated_scene(geo)
+        yield_estimator = yield_estimation(scene, geo)
+
+        return ("OK", "application/json", json.dumps(yield_estimator))
+
+    except Exception as e:
+        return ("ERROR", "application/json", json.dumps({"errorMessage": str(e)}))
+
 
 
 
