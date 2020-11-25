@@ -1,18 +1,24 @@
 [tool.poetry]
 name = "src"
 version = "0.0.0"
-description = "Lambda for consuming sentinel COGs"
+description = "Yield estimation model based on NDVI"
 authors = []
 
 [tool.poetry.dependencies]
 python = "^3.7"
-click = "*"
+geojson = "^2.5.0"
+rasterio = "^1.1.5"
+sat-search = "^0.3.0"
+lambda-proxy = "^5.2.1"
+intake-stac = "^0.3.0"
+rio-tiler = "2.0.0rc1"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 sphinx_rtd_theme = "*"
 sphinx = "*"
 pre_commit = "*"
+autopep8 = "^1.5.4"
 
 [tool.poetry.scripts]
 src = "src.cli:cli"
