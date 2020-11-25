@@ -11,7 +11,7 @@ def yield_estimation(geojson):
 
     scenes = fetch_stac_scenes(geojson)
 
-    #best_scene = best_stac_date(scenes) 
+    best_scene = best_stac_date(scenes) 
 
     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
     stac_asset = stac_item.format(sceneid=best_scene)

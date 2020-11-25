@@ -27,8 +27,8 @@ def main_handler(body):
     geo = geojson.loads(body)
     
     try:
-        scene = best_dated_scene(geo)
-        yield_estimator = yield_estimation(scene, geo)
+
+        yield_estimator = yield_estimation(geo) 
 
         return ("OK", "application/json", json.dumps(yield_estimator))
 
