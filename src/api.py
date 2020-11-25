@@ -31,18 +31,16 @@ def best_stac_date(scenes):
 
     for date in scl_dates: 
         with COGReader(date) as cog:
-            valid_pixels = 0
-            for row in range(len(cog.dataset)):
-                for col in range(len(band[row])):
-                    if band[row][col] == 4 or band[row][col] == 5 or band[row][col] == 6:
-                        valid_pixels += 1
-                    else:
-                        continue
-            ratio = valid_pixels / (cog.data.shape[0] * cog.data.shape[1])
+            band, mask = cog.part(bounds)
+    
+            valid_pixels = np.count_nonzero((band == 4) | (band == 5) | (band == 6))
+        
+            ratio = valid_pixels / (band.shape[0] * band.shape[1])
+        
             if ratio > best_ratio:
                 best_scene = date
                 best_ratio = ratio
-    
+
     return best_scene
 
 
