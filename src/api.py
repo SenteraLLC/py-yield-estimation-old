@@ -2,7 +2,9 @@ import json
 import datetime
 import satsearch
 import intake
+import numpy as np
 
+from rio_tiler.io import COGReader
 from rasterio.features import bounds as featureBounds
 
 STAC_API_ENDPOINT = "https://earth-search.aws.element84.com/v0/search/"
@@ -21,14 +23,16 @@ def fetch_stac_scenes(geojson):
                                       sort=['<datetime'])
     
     scenes = intake.open_stac_item_collection(results.items())
+    
+    return scenes
 
-    return list(scenes)
-
-def best_stac_date(scenes):
+def least_cloud_cover_date(scenes, geojson):
     best_ratio = 0
-    # find the best scene with the least cloud cover. 
-    scl_dates = [scenes[item].SCL().metadata['href'] for item in scenes]
+    bounds = featureBounds(geojson)
 
+    # find the best scene with the least cloud cover.
+    scl_dates = [scenes[item].SCL().metadata['href'] for item in scenes]
+    
     for date in scl_dates: 
         with COGReader(date) as cog:
             band, mask = cog.part(bounds)
@@ -41,15 +45,4 @@ def best_stac_date(scenes):
                 best_scene = date
                 best_ratio = ratio
 
-    return best_scene
-
-
-
-
-
-
-
-    
-
-
-  
+    return best_scene 
