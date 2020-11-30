@@ -1,20 +1,28 @@
-from src.log_cfg import logger
+#from src.log_cfg import logger
+from urllib.parse import urlparse
 
 import numpy as np
+
+from src.api import fetch_stac_scenes
+from src.api import least_cloud_cover_date
+
 from rio_tiler.io import COGReader, STACReader
 from rio_tiler.profiles import img_profiles
 from rio_tiler.models import ImageData, Metadata
 
 from rasterio.features import bounds as featureBounds
 
-def yield_estimation(geojson):
+def ndvi_mean(geojson):
 
     scenes = fetch_stac_scenes(geojson)
+    
+    best_scene = least_cloud_cover_date(scenes, geojson)
 
-    best_scene = best_stac_date(scenes) 
-
+    # Scene path from the AWS URL for element84 query. ex: S2B_14TQN_20200708_0_L2A
+    scene_path = urlparse(best_scene).path.split('/')[-2]
+    
     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_asset = stac_item.format(sceneid=best_scene)
+    stac_asset = stac_item.format(sceneid=scene_path)
 
     bounds = featureBounds(geojson)
 
