@@ -1,4 +1,4 @@
-"""Yield estimation model based on NDVI"""
+"""Yield estimation model based on NDVI."""
 
 from src._version import __version__
 
