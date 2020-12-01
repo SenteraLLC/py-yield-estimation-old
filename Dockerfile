@@ -7,7 +7,7 @@ ENV PACKAGE_PREFIX=/var/task
 ################################################################################
 
 # Install non-scientific (i.e. no numpy/scipy) dependencies: -------------------
-RUN pip3 install geojson sat-search intake-stac pyproj -t ${PACKAGE_PREFIX}/ -U
+RUN pip3 install geojson sat-search intake-stac -t ${PACKAGE_PREFIX}/ -U
 RUN pip3 install lambda-proxy -t ${PACKAGE_PREFIX}/ -U
 
 # Install dependencies of scientific dependencies TODO...: -----------------

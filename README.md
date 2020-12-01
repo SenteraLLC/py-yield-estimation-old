@@ -34,18 +34,20 @@
 4) Set up ``pre-commit`` to ensure all commits to adhere to **black** and **PEP8** style conventions.
 
         poetry run pre-commit install
-        
+
 ## Usage
 
 Within the correct poetry/conda shell, run ``src --help`` to view available CLI commands.
 
 ## Serverless local usage
 
-        >> serverless invoke local --function get_cogs --data '{ "geoJSON": ...}'
+Check out the docs [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/)
+
+        >> serverless invoke local --function yield_estimation --data '{ "geoJSON": ...}'
 
 ## Local usage (without serverless)
 
-        >> poetry run python scripts/run_sentinel_stac.py
+        >> poetry run python scripts/run_yield_estimation.py
 
 ## Documentation
 

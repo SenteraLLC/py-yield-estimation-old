@@ -27,7 +27,7 @@ src = "src.cli:cli"
 line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
-known_third_party = ["click"]
+known_third_party = ["click", "geojson", "intake", "lambda_proxy", "numpy", "rasterio", "rio_tiler", "satsearch"]
 
 [build-system]
 requires = ["poetry-core"]

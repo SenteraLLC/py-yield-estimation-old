@@ -58,12 +58,12 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  ndvi_mean:
+  yield_estimation:
     handler: src/handler.main_handler
     events:
       - http:
           path: test
-          method: get
+          method: post
           cors: true
 
 #    The following are a few example events you can configure
