@@ -1,22 +1,24 @@
 language: python
-python: 3.7
+python: 3.8
 
 services:
   - docker
 
 install:
   - 'pip install poetry'
-  - 'poetry install'
 
 script:
   - poetry run pre-commit run --all-files
 
-# deploy:
-#   - provide: s3
-#     skip_cleanup: true
-#     bucket: sentera-build-packages
-#     local-dir: dist
-#     upload-dir: yield-estimation
-#     acl: private
-#     on:
-#       branch: master
+before_deploy:
+  - SSH_PRIVATE_KEY=$(cat ~/.ssh/id_rsa) ./scripts/build.sh
+
+deploy:
+  - provide: s3
+    skip_cleanup: true
+    bucket: sentera-build-packages
+    local-dir: dist
+    upload-dir: yield-estimation
+    acl: private
+    on:
+      branch: master
