@@ -11,8 +11,8 @@ install:
 script:
   - poetry run pre-commit run --all-files
 
-before_deploy:
-  - SSH_PRIVATE_KEY=$(cat ~/.ssh/id_rsa) ./scripts/build.sh
+# before_deploy:
+#   - SSH_PRIVATE_KEY=$(cat ~/.ssh/id_rsa) ./scripts/build.sh
 
 deploy:
   - provide: s3

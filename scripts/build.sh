@@ -5,7 +5,7 @@ set -e
 BASEDIR=$(git rev-parse --show-toplevel)
 docker build ${BASEDIR} \
        --tag yield-estimation \
-       --build-arg SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}"
+       #--build-arg SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}"
 
 # Remove previous results
 rm -rf ${BASEDIR}/dist || true
