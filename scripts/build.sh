@@ -4,7 +4,7 @@ set -e
 # Build project in amazonlinux Docker image for deployment on AWS Lambda
 BASEDIR=$(git rev-parse --show-toplevel)
 docker build ${BASEDIR} \
-       --tag yield-estimation \
+       --tag yield-estimation
        #--build-arg SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}"
 
 # Remove previous results
