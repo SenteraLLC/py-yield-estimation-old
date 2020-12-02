@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     return ndvi_mean(event)
 
 
-@APP.route("/yield", methods=["POST"], cors=True, binary_b64encode=True)
+@APP.route("/yield-estimate", methods=["POST"], cors=True, binary_b64encode=True)
 def main_handler(body, context):
     """Note: If invoking locally with the Serverless framework,
     comment out the geojson.loads() line and pass body directly to ndvi_mean()
