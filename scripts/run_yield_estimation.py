@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 from src.main import ndvi_mean
 
