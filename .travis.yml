@@ -6,6 +6,7 @@ services:
 
 install:
   - 'pip install poetry'
+  - 'poetry install'
 
 script:
   - poetry run pre-commit run --all-files
