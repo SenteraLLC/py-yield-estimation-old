@@ -11,7 +11,8 @@ docker build ${BASEDIR} \
 rm -rf ${BASEDIR}/dist || true
 
 # Copy dist.zip from Docker image
-VERSION="v$(cat ${BASEDIR}/.version)-$(date +'%Y%m%d-%H%M%S')"
+#VERSION="v$(cat ${BASEDIR}/.version)-$(date +'%Y%m%d-%H%M%S')"
+VERSION=$(wget -O - https://github.com/SenteraLLC/version.sh/raw/master/version.sh | bash)
 mkdir -p ${BASEDIR}/dist/$(dirname ${VERSION})
 docker run \
        --volume ${BASEDIR}:/local \
