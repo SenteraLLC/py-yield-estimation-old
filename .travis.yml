@@ -12,6 +12,10 @@ script:
   - poetry run pre-commit run --all-files
 
 before_deploy:
+  # Checking out the branch is necessary because Travis operates in a
+  # "detached HEAD" state. This breaks git-based inspection of current
+  # branch, which is used in the following "version" logic
+  - git checkout $TRAVIS_BRANCH
   - ./scripts/build.sh
 
 deploy:
