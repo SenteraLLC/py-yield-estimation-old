@@ -6,4 +6,6 @@ _build/
 node_modules
 .serverless
 .vscode
-/datasets/*
+/datasets/*.DS_Store
+**/.DS_Store
+.DS_Store
