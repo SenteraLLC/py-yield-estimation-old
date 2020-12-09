@@ -1,4 +1,5 @@
 # from src.log_cfg import logger
+import math
 from urllib.parse import urlparse
 
 import numpy as np
@@ -9,7 +10,7 @@ from rio_tiler.models import ImageData
 from src.api import fetch_stac_scenes, least_cloud_cover_date
 
 
-def ndvi_mean(geojson):
+def yield_estimation(geojson):
 
     scenes = fetch_stac_scenes(geojson)
 
@@ -41,9 +42,11 @@ def ndvi_mean(geojson):
     # NDVI as a MaskedArray
     ndvi_masked = ImageData(ndvi, masked).as_masked()
 
-    print("\nMax NDVI: {m}".format(m=ndvi_masked.max()))
-    print("Mean NDVI: {m}".format(m=ndvi_masked.mean()))
-    print("Median NDVI: {m}".format(m=np.median(ndvi_masked.data)))
-    print("Min NDVI: {m}".format(m=ndvi_masked.min()))
+    # print("\nMax NDVI: {m}".format(m=ndvi_masked.max()))
+    # print("Mean NDVI: {m}".format(m=ndvi_masked.mean()))
+    # print("Median NDVI: {m}".format(m=np.median(ndvi_masked.data)))
+    # print("Min NDVI: {m}".format(m=ndvi_masked.min()))
 
-    return ndvi_masked.mean()
+    yield_estimate = 11.359 * math.exp(3.1 * ndvi_masked.mean())
+
+    return yield_estimate

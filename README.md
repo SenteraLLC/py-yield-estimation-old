@@ -1,6 +1,6 @@
 # py-yield-estimation
 
-``src``: Yield estimation model based on NDVI
+``src``: Yield estimation model in bushels/acre based on NDVI
 
 ## Installation 
 
@@ -36,6 +36,8 @@
         poetry run pre-commit install
 
 ## Usage
+
+This service takes GeoJSON as input, finds the date with the least cloud coverage from a given date range and outputs a yield estimation in bushels per acre based on NDVI. 
 
 Within the correct poetry/conda shell, run ``src --help`` to view available CLI commands.
 

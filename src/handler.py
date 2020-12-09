@@ -5,7 +5,7 @@ import geojson
 from lambda_proxy.proxy import API
 
 from src.log_cfg import logger
-from src.main import ndvi_mean
+from src.main import yield_estimation
 
 APP = API(name="yield-estimation")
 
@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     version = os.getenv("VERSION", "unknown")
     logger.info(f"Handling lambda invocation to yield-estimation ({version})")
 
-    return ndvi_mean(event)
+    return yield_estimation(event)
 
 
 @APP.route("/yield-estimate", methods=["POST"], cors=True, binary_b64encode=True)
@@ -30,7 +30,7 @@ def main_handler(body, context):
 
     try:
 
-        yield_estimator = ndvi_mean(geo)
+        yield_estimator = yield_estimation(geo)
 
         return ("OK", "application/json", json.dumps(yield_estimator))
 
