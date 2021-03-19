@@ -1,6 +1,4 @@
 # from src.log_cfg import logger
-import math
-from urllib.parse import urlparse
 
 import numpy as np
 import geopandas as gpd 
@@ -11,12 +9,9 @@ from datetime import date
 from satsearch import Search
 from satstac import Item
 
-from src.api import fetch_stac_scenes, least_cloud_cover_date
-
 ELEMENT84_URL = "https://earth-search.aws.element84.com/v0/search/"
 SENTINEL_L2A_COLLECTION = 'sentinel-s2-l2a-cogs'
 CDL_PATH = "CDL_2019/CDL_2019_clip_20201217154034_1060751160.tif"
-
 
 def main(shapefile, datetime: date) -> object:
     county_shapefile = gpd.read_file(shapefile)
@@ -33,14 +28,14 @@ def search(geometry: dict, start: str, end: str) -> object:
     return search.items()
     
 
-def ndvi(geometry: tuple, stac_item: Item, height: float, width: float) -> ImageData: 
+def ndvi(geometry: tuple, stac_item: Item) -> ImageData: 
     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
     stac_asset = stac_item.format(sceneid=stac_item.id) 
         
     with STACReader(stac_asset) as stac:
         ndvi, _ = stac.part(geometry, expression="(B08-B04)/(B08+B04)")
         
-    cloud_mask = cloud_mask()
+    cloud_mask = cloud_mask(stac_asset, geometry, ndvi.shape[1], ndvi.shape[2])
     ndvi_masked = ImageData(ndvi, cloud_mask).as_masked()
     
     return ndvi_masked
@@ -66,7 +61,7 @@ def process_images(geometry: tuple, start: date, end: date) -> object:
     try:
         item = search(geometry, start, end)
         
-        red, nir, grn = item.asset('B4'), item.asset('B5'), item.asset('B3')
+        red, nir, grn = item.asset('B04'), item.asset('B05'), item.asset('B03')
         red, nir, grn = red['href'], nir['href'], grn['href']
         
         with COGReader(red) as r:
@@ -78,13 +73,15 @@ def process_images(geometry: tuple, start: date, end: date) -> object:
         with COGReader(grn) as g: 
             green_band = g.part(geometry)
             
+        ndvi_mean = ndvi(geometry, item)
+            
     except StopIteration:
         raise Exception("No collection found for date range.")
         
 
-def cdl_mask(geometry: tuple, crop_type: int):
-    with COGReader() as cog:
-        img = cog.part(geometry)
+def cdl_mask(geometry: tuple, crop_type: int, height: int, width: int):
+    with COGReader(CDL_PATH) as cog:
+        img = cog.part(geometry, resampling_method="nearest", height=height, width=width)
         return np.ma.where((img.data == crop_type), 1, 0)
 
 
@@ -103,43 +100,41 @@ def county_geometries(counties_df: GeoDataFrame) -> dict:
     return counties
 
 
-def yield_estimation(geojson):
+# def yield_estimation(geojson):
+#     scenes = fetch_stac_scenes(geojson)
+#     best_scene = least_cloud_cover_date(scenes, geojson)
 
-    scenes = fetch_stac_scenes(geojson)
+#     # Scene path from the AWS URL for element84 query. ex: S2B_14TQN_20200708_0_L2A
+#     scene_path = urlparse(best_scene).path.split("/")[-2]
 
-    best_scene = least_cloud_cover_date(scenes, geojson)
+#     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
+#     stac_asset = stac_item.format(sceneid=scene_path)
 
-    # Scene path from the AWS URL for element84 query. ex: S2B_14TQN_20200708_0_L2A
-    scene_path = urlparse(best_scene).path.split("/")[-2]
+#     bounds = featurebounds(geojson)
 
-    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_asset = stac_item.format(sceneid=scene_path)
+#     with STACReader(stac_asset) as cog:
+#         ndvi, _ = cog.part(bounds, expression="(B08-B04)/(B08+B04)")
+#         # Crop and resample scene classification band
+#         scl_band, mask = cog.part(
+#             bounds,
+#             resampling_method="nearest",
+#             height=ndvi.shape[1],
+#             width=ndvi.shape[2],
+#             assets="SCL",
+#             max_size=None,
+#         )
 
-    bounds = featurebounds(geojson)
+#     # Apply cloud mask
+#     masked = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
 
-    with STACReader(stac_asset) as cog:
-        ndvi, _ = cog.part(bounds, expression="(B08-B04)/(B08+B04)")
-        # Crop and resample scene classification band
-        scl_band, mask = cog.part(
-            bounds,
-            resampling_method="nearest",
-            height=ndvi.shape[1],
-            width=ndvi.shape[2],
-            assets="SCL",
-            max_size=None,
-        )
+#     # NDVI as a MaskedArray
+#     ndvi_masked = ImageData(ndvi, masked).as_masked()
 
-    # Apply cloud mask
-    masked = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
+#     # print("\nMax NDVI: {m}".format(m=ndvi_masked.max()))
+#     # print("Mean NDVI: {m}".format(m=ndvi_masked.mean()))
+#     # print("Median NDVI: {m}".format(m=np.median(ndvi_masked.data)))
+#     # print("Min NDVI: {m}".format(m=ndvi_masked.min()))
 
-    # NDVI as a MaskedArray
-    ndvi_masked = ImageData(ndvi, masked).as_masked()
+#     yield_estimate = 11.359 * math.exp(3.1 * ndvi_masked.mean())
 
-    # print("\nMax NDVI: {m}".format(m=ndvi_masked.max()))
-    # print("Mean NDVI: {m}".format(m=ndvi_masked.mean()))
-    # print("Median NDVI: {m}".format(m=np.median(ndvi_masked.data)))
-    # print("Min NDVI: {m}".format(m=ndvi_masked.min()))
-
-    yield_estimate = 11.359 * math.exp(3.1 * ndvi_masked.mean())
-
-    return yield_estimate
+#     return yield_estimate
