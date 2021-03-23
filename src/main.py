@@ -4,6 +4,7 @@ import numpy as np
 import geopandas as gpd 
 from rasterio.features import bounds as featurebounds
 from rio_tiler.io import STACReader, COGReader
+from rio_tiler.mosaic import mosaic_reader
 from rio_tiler.models import ImageData
 from datetime import date
 from satsearch import Search
@@ -28,18 +29,28 @@ def search(geometry: dict, start: str, end: str) -> object:
     return search.items()
     
 
-def ndvi(geometry: tuple, stac_item: Item) -> ImageData: 
-    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_asset = stac_item.format(sceneid=stac_item.id) 
-        
-    with STACReader(stac_asset) as stac:
-        ndvi, _ = stac.part(geometry, expression="(B08-B04)/(B08+B04)")
-        
-    cloud_mask = cloud_mask(stac_asset, geometry, ndvi.shape[1], ndvi.shape[2])
-    ndvi_masked = ImageData(ndvi, cloud_mask).as_masked()
+def cdl_mask(geometry: tuple, crop_type: int, height: int, width: int):
+    with COGReader(CDL_PATH) as cog:
+        cdl = cog.part(geometry, resampling_method="nearest", height=height, width=width)
+        return np.ma.where((cdl.data == crop_type), 1, 0)
     
-    return ndvi_masked
+    
+def ndvi(geometry: tuple, scenes: ItemCollection) -> ImageData: 
+    sceneid = [scene.id for scene in scenes]
+    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
+    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
+    
+    def ndvi_tiler(asset, *args, **kwargs):
+        with STACReader(asset) as stac:
+            return stac.part(geometry, expression="(B08-B04)/(B08+B04)")
         
+    ndvi, _ = mosaic_reader(stac_assets, ndvi_tiler)
+    
+    mask = cdl_mask(geometry, 1, ndvi.data.shape[1], ndvi.data.shape[2])
+    ndvi_masked = ImageData(ndvi.data, mask).as_masked()
+        
+    return ndvi_masked        
+
 
 def cloud_mask(asset_url: str, geometry: tuple, height: float, width: float):
     # TODO: STACReader or COGReader? 
@@ -59,30 +70,11 @@ def cloud_mask(asset_url: str, geometry: tuple, height: float, width: float):
         
 def process_images(geometry: tuple, start: date, end: date) -> object:
     try:
-        item = search(geometry, start, end)
-        
-        red, nir, grn = item.asset('B04'), item.asset('B05'), item.asset('B03')
-        red, nir, grn = red['href'], nir['href'], grn['href']
-        
-        with COGReader(red) as r:
-            red_band = r.part(geometry)
-            
-        with COGReader(nir) as n:
-            nir_band = n.part(geometry)
-            
-        with COGReader(grn) as g: 
-            green_band = g.part(geometry)
-            
-        ndvi_mean = ndvi(geometry, item)
-            
+        scenes = search(geometry, start, end)
+        ndvi = ndvi(geometry, scenes)
+
     except StopIteration:
         raise Exception("No collection found for date range.")
-        
-
-def cdl_mask(geometry: tuple, crop_type: int, height: int, width: int):
-    with COGReader(CDL_PATH) as cog:
-        img = cog.part(geometry, resampling_method="nearest", height=height, width=width)
-        return np.ma.where((img.data == crop_type), 1, 0)
 
 
 def county_geometries(counties_df: GeoDataFrame) -> dict:
