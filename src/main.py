@@ -84,9 +84,9 @@ def nir_band(geometry: tuple, scenes: ItemCollection) -> ImageData:
             overlay = np.logical_and(cloud_msk, cdl)
             return ImageData(nir, overlay)
         
-    ndvi, _ = mosaic_reader(stac_assets, nir_tiler)
-    ndvi_masked = ndvi.as_masked()
-    return ndvi_masked
+    nir, _ = mosaic_reader(stac_assets, nir_tiler)
+    nir_masked = nir.as_masked()
+    return nir_masked
         
     
 def process_images(geometry: tuple, start: date, end: date) -> object:
