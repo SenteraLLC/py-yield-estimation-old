@@ -77,7 +77,7 @@ def nir_band(geometry: tuple, scenes: ItemCollection) -> ImageData:
     
     def nir_tiler(asset, *args, **kwargs):
         with STACReader(asset) as stac:
-            nir, _ = stac.part(geometry, assets="B05") 
+            nir, _ = stac.part(geometry, assets="B08") 
             cloud_msk = cloud_mask(asset, geometry=geometry, height=ndvi.shape[1], width=ndvi.shape[2])
             cdl = cdl_mask(geometry, 1, nir.shape[1], nir.shape[2])
             
