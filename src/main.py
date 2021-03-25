@@ -35,25 +35,7 @@ def cdl_mask(geometry: tuple, crop_type: int, height: int, width: int):
         return np.ma.where((cdl.data == crop_type), 1, 0)
     
     
-def ndvi(geometry: tuple, scenes: ItemCollection) -> ImageData: 
-    sceneid = [scene.id for scene in scenes]
-    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
-    
-    def ndvi_tiler(asset, *args, **kwargs):
-        with STACReader(asset) as stac:
-            return stac.part(geometry, expression="(B08-B04)/(B08+B04)")
-        
-    ndvi, _ = mosaic_reader(stac_assets, ndvi_tiler)
-    
-    mask = cdl_mask(geometry, 1, ndvi.data.shape[1], ndvi.data.shape[2])
-    ndvi_masked = ImageData(ndvi.data, mask).as_masked()
-        
-    return ndvi_masked        
-
-
 def cloud_mask(asset_url: str, geometry: tuple, height: float, width: float):
-    # TODO: STACReader or COGReader? 
     with STACReader(asset_url) as stac:
         scl_band, _ = stac.part(
             geometry,
@@ -66,19 +48,59 @@ def cloud_mask(asset_url: str, geometry: tuple, height: float, width: float):
     # 0 - 4 are shadows, while pixels greater than 6 are cloud probable. 
     cloud_mask = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
     return cloud_mask
+    
         
+def ndvi(geometry: tuple, scenes: ItemCollection) -> ImageData: 
+    sceneid = [scene.id for scene in scenes]
+    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
+    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
+    
+    def ndvi_tiler(asset, *args, **kwargs):
+        with STACReader(asset) as stac:
+            ndvi, _ = stac.part(geometry, expression="(B08-B04)/(B08+B04)")
+            cloud_msk = cloud_mask(asset, geometry=geometry, height=ndvi.shape[1], width=ndvi.shape[2])
+            cdl = cdl_mask(geometry, 1, ndvi.shape[1], ndvi.shape[2])
+            
+            # Cloud mask + CDL mask 
+            overlay = np.logical_and(cloud_msk, cdl)
+            return ImageData(ndvi, overlay)
         
+    ndvi, _ = mosaic_reader(stac_assets, ndvi_tiler)
+    ndvi_masked = ndvi.as_masked()
+    return ndvi_masked
+
+
+def nir_band(geometry: tuple, scenes: ItemCollection) -> ImageData:
+    sceneid = [scene.id for scene in scenes]
+    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
+    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
+    
+    def nir_tiler(asset, *args, **kwargs):
+        with STACReader(asset) as stac:
+            nir, _ = stac.part(geometry, assets="B05") 
+            cloud_msk = cloud_mask(asset, geometry=geometry, height=ndvi.shape[1], width=ndvi.shape[2])
+            cdl = cdl_mask(geometry, 1, nir.shape[1], nir.shape[2])
+            
+            overlay = np.logical_and(cloud_msk, cdl)
+            return ImageData(nir, overlay)
+        
+    ndvi, _ = mosaic_reader(stac_assets, nir_tiler)
+    ndvi_masked = ndvi.as_masked()
+    return ndvi_masked
+        
+    
 def process_images(geometry: tuple, start: date, end: date) -> object:
     try:
         scenes = search(geometry, start, end)
         ndvi = ndvi(geometry, scenes)
-
+        nir = nir_band(geometry, scenes)
+        
     except StopIteration:
         raise Exception("No collection found for date range.")
 
 
 def county_geometries(counties_df: GeoDataFrame) -> dict:
-    """ Takes a DataFrame and returns a Dict with the converted tuple coordinates. 
+    """ Takes a DataFrame and returns a Dict with the county name and converted tuple coordinates. 
 
     Args:
         counties_df (GeoDataFrame): Counties GeoDataFrame from shapefile.
@@ -90,43 +112,3 @@ def county_geometries(counties_df: GeoDataFrame) -> dict:
     for key, value in counties.items():
         counties[key] = featurebounds(value)
     return counties
-
-
-# def yield_estimation(geojson):
-#     scenes = fetch_stac_scenes(geojson)
-#     best_scene = least_cloud_cover_date(scenes, geojson)
-
-#     # Scene path from the AWS URL for element84 query. ex: S2B_14TQN_20200708_0_L2A
-#     scene_path = urlparse(best_scene).path.split("/")[-2]
-
-#     stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-#     stac_asset = stac_item.format(sceneid=scene_path)
-
-#     bounds = featurebounds(geojson)
-
-#     with STACReader(stac_asset) as cog:
-#         ndvi, _ = cog.part(bounds, expression="(B08-B04)/(B08+B04)")
-#         # Crop and resample scene classification band
-#         scl_band, mask = cog.part(
-#             bounds,
-#             resampling_method="nearest",
-#             height=ndvi.shape[1],
-#             width=ndvi.shape[2],
-#             assets="SCL",
-#             max_size=None,
-#         )
-
-#     # Apply cloud mask
-#     masked = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
-
-#     # NDVI as a MaskedArray
-#     ndvi_masked = ImageData(ndvi, masked).as_masked()
-
-#     # print("\nMax NDVI: {m}".format(m=ndvi_masked.max()))
-#     # print("Mean NDVI: {m}".format(m=ndvi_masked.mean()))
-#     # print("Median NDVI: {m}".format(m=np.median(ndvi_masked.data)))
-#     # print("Min NDVI: {m}".format(m=ndvi_masked.min()))
-
-#     yield_estimate = 11.359 * math.exp(3.1 * ndvi_masked.mean())
-
-#     return yield_estimate
