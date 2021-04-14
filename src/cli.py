@@ -1,9 +1,7 @@
 """CLI entrypoints through ``click`` bindings."""
 
 import logging
-
 import click
-
 import src
 
 
@@ -17,6 +15,7 @@ import src
 def cli(log_level):
     """CLI entrypoint."""
     logging.basicConfig(level=log_level)
+    
 
 
 @cli.command()

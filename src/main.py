@@ -1,23 +1,21 @@
-# from src.log_cfg import logger
-
 import numpy as np
-import geopandas as gpd 
+import click
 from rasterio.features import bounds as featurebounds
 from rio_tiler.io import STACReader, COGReader
 from rio_tiler.mosaic import mosaic_reader
 from rio_tiler.models import ImageData
 from datetime import date
+from rasterio.plot import reshape_as_image
+from pylab import *
+from matplotlib import pyplot as plt
+import geojson
 from satsearch import Search
-from satstac import Item
+from pathlib import Path
+import imageio
 
 ELEMENT84_URL = "https://earth-search.aws.element84.com/v0/search/"
 SENTINEL_L2A_COLLECTION = 'sentinel-s2-l2a-cogs'
-CDL_PATH = "CDL_2019/CDL_2019_clip_20201217154034_1060751160.tif"
 
-def main(shapefile, datetime: date) -> object:
-    county_shapefile = gpd.read_file(shapefile)
-    county_shapefile = county_shapefile.to_crs({'init': 'epsg:4326'})
-    
 
 def search(geometry: dict, start: str, end: str) -> object:
     kwargs = {
@@ -26,89 +24,67 @@ def search(geometry: dict, start: str, end: str) -> object:
         'collections': [SENTINEL_L2A_COLLECTION]
     }
     search = Search(url=ELEMENT84_URL, **kwargs)
+    print('found: ', len(search.items()))
     return search.items()
-    
-
-def cdl_mask(geometry: tuple, crop_type: int, height: int, width: int):
-    with COGReader(CDL_PATH) as cog:
-        cdl = cog.part(geometry, resampling_method="nearest", height=height, width=width)
-        return np.ma.where((cdl.data == crop_type), 1, 0)
-    
-    
+   
+      
 def cloud_mask(asset_url: str, geometry: tuple, height: float, width: float):
-    with STACReader(asset_url) as stac:
-        scl_band, _ = stac.part(
+    with COGReader(asset_url) as cog:
+        scl_band, _ = cog.part(
             geometry,
             resampling_method="nearest",
-            height=height,
-            width=width,
-            assets="SCL",
-            max_size=None
+            height=height, 
+            width=width
         )
     # 0 - 4 are shadows, while pixels greater than 6 are cloud probable. 
     cloud_mask = np.ma.where((scl_band < 4) | (scl_band > 6), 0, 1)
     return cloud_mask
+
+
+def process_scenes(scenes, bands, geometry):
+    for scene in scenes:
+        scl_url = scene.asset('SCL')['href']
+        print('urls: ', scl_url)
+        
+        for band in bands:
+            stac_asset = scene.asset(band)['href']
+            with COGReader(stac_asset) as cog:
+                img, _ = cog.part(geometry)
+                msk = cloud_mask(scl_url, geometry, height=img.shape[1], width=img.shape[2])
+                
+                scene = ImageData(img, msk).as_masked()
+                
+                # Reshape as RGB for writing. 
+                img_data = reshape_as_image(scene)
+                
+                return ImageData(img, msk).as_masked()
+                
+def write_output(scene):
+    path = Path.cwd() /'sentinel-images'
+    path.mkdir(parents=True, exist_ok=True)
+
+    imageio.imwrite(str(path) + '/' + 'img.tif', scene)
+    # plt.imshow(reshape_as_image(scene))
+    # plt.show()
     
-        
-def ndvi(geometry: tuple, scenes: ItemCollection) -> ImageData: 
-    sceneid = [scene.id for scene in scenes]
-    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
+@click.command(short_help="Pull Sentinel-L2A-COGS for an area of interest")
+@click.argument("shape_file", type=str, nargs=1)
+@click.option(
+    "--bands", "-b", type=str, multiple=True, help="Band index to pull",
+    default=['B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'SCL']
+)
+@click.option("--start_time", type=str, default="", help="Start of the date range")
+@click.option("--end_time", type=str, default="", help="End of the date range")
+def main(shape_file, bands, start_time, end_time):
+    f = open(shape_file)
+    data = geojson.load(f)
+    bbox = featurebounds(data)
+    scene_assets = search(bbox, start_time, end_time)
+    scene = process_scenes(scene_assets, bands, bbox)
     
-    def ndvi_tiler(asset, *args, **kwargs):
-        with STACReader(asset) as stac:
-            ndvi, _ = stac.part(geometry, expression="(B08-B04)/(B08+B04)")
-            cloud_msk = cloud_mask(asset, geometry=geometry, height=ndvi.shape[1], width=ndvi.shape[2])
-            cdl = cdl_mask(geometry, 1, ndvi.shape[1], ndvi.shape[2])
-            
-            # Cloud mask + CDL mask 
-            overlay = np.logical_and(cloud_msk, cdl)
-            return ImageData(ndvi, overlay)
-        
-    ndvi, _ = mosaic_reader(stac_assets, ndvi_tiler)
-    ndvi_masked = ndvi.as_masked()
-    return ndvi_masked
+    # TODO: Call in process_images
+    write_output(reshape_as_image(scene))
 
 
-def nir_band(geometry: tuple, scenes: ItemCollection) -> ImageData:
-    sceneid = [scene.id for scene in scenes]
-    stac_item = "https://earth-search.aws.element84.com/v0/collections/sentinel-s2-l2a-cogs/items/{sceneid}"
-    stac_assets = [stac_item.format(sceneid=scene) for scene in sceneid]
-    
-    def nir_tiler(asset, *args, **kwargs):
-        with STACReader(asset) as stac:
-            nir, _ = stac.part(geometry, assets="B08") 
-            cloud_msk = cloud_mask(asset, geometry=geometry, height=ndvi.shape[1], width=ndvi.shape[2])
-            cdl = cdl_mask(geometry, 1, nir.shape[1], nir.shape[2])
-            
-            overlay = np.logical_and(cloud_msk, cdl)
-            return ImageData(nir, overlay)
-        
-    nir, _ = mosaic_reader(stac_assets, nir_tiler)
-    nir_masked = nir.as_masked()
-    return nir_masked
-        
-    
-def process_images(geometry: tuple, start: date, end: date) -> object:
-    try:
-        scenes = search(geometry, start, end)
-        ndvi = ndvi(geometry, scenes)
-        nir = nir_band(geometry, scenes)
-        
-    except StopIteration:
-        raise Exception("No collection found for date range.")
-
-
-def county_geometries(counties_df: GeoDataFrame) -> dict:
-    """ Takes a DataFrame and returns a Dict with the county name and converted tuple coordinates. 
-
-    Args:
-        counties_df (GeoDataFrame): Counties GeoDataFrame from shapefile.
-
-    Returns:
-        dict: County names and tuple of geometries: {"County": "(36.5, ...) }.
-    """
-    counties = dict(zip(counties_df.COUNTY_NAM, counties_df.geometry))
-    for key, value in counties.items():
-        counties[key] = featurebounds(value)
-    return counties
+if __name__ == '__main__':
+    main()
