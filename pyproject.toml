@@ -10,9 +10,9 @@ geojson = "^2.5.0"
 rasterio = "^1.1.5"
 sat-search = "^0.3.0"
 lambda-proxy = "^5.2.1"
-intake-stac = "^0.3.0"
 rio-tiler = "^2.0.1"
 click = "^7.1.2"
+imageio = "^2.9.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
