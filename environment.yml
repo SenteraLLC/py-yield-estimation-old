@@ -1,8 +1,8 @@
-name: sentinel-venv
+name: yield_estimation
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
+  - python=3.9
   # dev dependencies
   - pytest
   - pre_commit
@@ -10,7 +10,8 @@ dependencies:
   - sphinx_rtd_theme
   # main dependencies
   - click
+  - arrow
   # subpackage dependencies
   # private dependencies
 #  - pip:
-#    - git+ssh://git@github.com/SenteraLLC/py-utils@v2.1.0
+#    - git+ssh://git@github.com/SenteraLLC/some-py-repo

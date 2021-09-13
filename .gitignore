@@ -1,11 +1,16 @@
 .idea
-__pycache__/
 *.pyc
 *.egg*
 _build/
-node_modules
-.serverless
-.vscode
-/datasets/*.DS_Store
 **/.DS_Store
 .DS_Store
+
+# Unit test / coverage reports
+.pytest_cache/
+__pycache__/
+
+# Serverless
+node_modules
+.serverless
+
+

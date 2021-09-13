@@ -1,5 +1,5 @@
 language: python
-python: 3.7
+python: 3.9
 
 services:
   - docker
@@ -10,20 +10,12 @@ install:
 
 script:
   - poetry run pre-commit run --all-files
+  - poetry run pytest
 
 before_deploy:
   # Checking out the branch is necessary because Travis operates in a
   # "detached HEAD" state. This breaks git-based inspection of current
   # branch, which is used in the following "version" logic
   - git checkout $TRAVIS_BRANCH
-  - ./scripts/build.sh
+  - SSH_PRIVATE_KEY=$(cat ~/.ssh/id_rsa) ./scripts/build.sh
 
-deploy:
-  - provide: s3
-    skip_cleanup: true
-    bucket: sentera-build-packages
-    local-dir: dist
-    upload-dir: yield-estimation
-    acl: private
-    on:
-      branch: master

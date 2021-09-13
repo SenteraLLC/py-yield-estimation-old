@@ -1,6 +1,6 @@
 # py-yield-estimation
 
-``src``: Yield estimation model in bushels/acre based on NDVI
+``yield_estimation``: Yield estimation model in bushels/acre based on NDVI and weather
 
 ## Installation 
 
@@ -37,15 +37,12 @@
 
 ## Usage
 
-This service takes GeoJSON as input, finds the date with the least cloud coverage from a given date range and outputs a yield estimation in bushels per acre based on NDVI. 
+This service takes inputs of NDVI and weather, outputs a yield estimation in bushels per acre.
 
 Within the correct poetry/conda shell, run ``src --help`` to view available CLI commands.
 
 ## Serverless local usage
 
-Check out the docs [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/)
-
-        >> serverless invoke local --function yield_estimation --data '{ "geoJSON": ...}'
 
 ## Local usage (without serverless)
 

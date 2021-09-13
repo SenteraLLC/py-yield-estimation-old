@@ -1,33 +1,28 @@
 [tool.poetry]
-name = "src"
+name = "yield_estimation"
 version = "0.0.0"
-description = "Yield estimation model based on NDVI"
+description = "Yield estimation model based on NDVI and weather"
 authors = []
 
 [tool.poetry.dependencies]
-python = "^3.7"
-geojson = "^2.5.0"
-rasterio = "^1.1.5"
-sat-search = "^0.3.0"
-lambda-proxy = "^5.2.1"
-intake-stac = "^0.3.0"
-rio-tiler = "^2.0.1"
+python = "^3.9"
+click = "*"
+arrow = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 sphinx_rtd_theme = "*"
 sphinx = "*"
 pre_commit = "*"
-autopep8 = "^1.5.4"
 
 [tool.poetry.scripts]
-src = "src.cli:cli"
+src = "yield_estimation.cli:cli"
 
 [tool.isort]
 line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
-known_third_party = ["click", "geojson", "intake", "lambda_proxy", "numpy", "rasterio", "rio_tiler", "satsearch"]
+known_third_party = ["arrow"]
 
 [build-system]
 requires = ["poetry-core"]
